@@ -1,0 +1,34 @@
+% \documentclass[twoside, a4paper, draft]{article}
+ \documentclass[12pt]{report}
+
+
+% \usepackage{showlabels} % shows labels for figures
+% \usepackage{showkeys}	% shows labels for equations
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{verbatim}
+\usepackage{cite}
+\usepackage{setspace}
+\usepackage{textcomp}
+\usepackage{graphicx}
+\usepackage{multirow}
+
+\setcounter{tocdepth}{1}
+\graphicspath{{./pic/}}
+\onehalfspacing
+
+\begin{document}
+
+\input{title.tex}
+\input{abstract.tex}
+\tableofcontents
+% \listoffigures
+\input{intro.tex}
+\input{design.tex}
+\input{results.tex} 
+\input{discussion.tex}
+\input{conclusion.tex}
+
+\end{document}
