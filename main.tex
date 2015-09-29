@@ -1,6 +1,5 @@
-% \documentclass[twoside, a4paper, draft]{article}
- \documentclass[12pt]{report}
-
+ % \documentclass[12pt, twoside, draft]{report}
+ \documentclass[12pt, twoside]{report}
 
 % \usepackage{showlabels} % shows labels for figures
 % \usepackage{showkeys}	% shows labels for equations
@@ -15,14 +14,14 @@
 \usepackage{textcomp}
 \usepackage{graphicx}
 \usepackage{multirow}
+\usepackage{pdfpages}
 
 \setcounter{tocdepth}{1}
 \graphicspath{{./pic/}}
 \onehalfspacing
 
 \begin{document}
-testing
-\input{title.tex}
+\includepdf{title.pdf}
 \input{abstract.tex}
 \tableofcontents
 % \listoffigures
