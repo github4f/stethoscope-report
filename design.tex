@@ -4,8 +4,19 @@
 What are our system specs?
 
 \section{System Overview}
-Block diagram of how stethoscope works
-\begin{figure}[!htb]
+Our wireless stethoscope consists of seven subsystems in order to transfer the auscultation sound signal to a speaker (Fig~\ref{fig:sys_overview}), they are
+\begin{enumerate}
+	\item Sensor,
+	\item Signal amplification,
+	\item Input circuitry,
+	\item Signal processing,
+	\item Wireless transmission,
+	\item Wired transmission,
+	\item System power.
+\end{enumerate}
+The sensor consists of a conventional stethoscope head coupled to a microphone, which transforms the sound signal into a voltage signal. This signal is too small to drive any circuitry directly, so it is passed through a signal amplification stage, which results in a bipolar signal. After amplification the signal is passed through input circuitry which introduces a 1.65V offset and limits the voltage to within the maximum tolerable values of the micro-controller in the next stage. This offset is required to transform the signal from bipolar to unipolar, as the micro-controller can not read negative voltages. The micro-controller then performs signal processing in the form of a digital filter, so that it will have the same sound characteristics as a conventional stethoscope. Once processed the signal is transmitted to a Blue-tooth module which transmits the data to a Blue-tooth speaker. In addition an audio jack is available to plug in a speaker locally. All these subsystems are powered by a 9V power source, which can be switched between battery and AC-DC wall adapter operation.
+
+\begin{figure}[!ht]
 	\centering
 	\fbox{
 		\includegraphics[resolution=120, width=375px, height=375px]{sys_overview.png}
@@ -19,9 +30,9 @@ In order to design our system we must determine what is the maximum sound freque
 
 An $f_{max}$ of 20kHz would work as this is the threshold of human hearing\cite[p.~163]{Stuart2011}, however it has been stated that the majority of heart and lung sounds occur at lower frequencies, within the range 37.5-1kHz\cite{Abella1992}. In order to determine $f_{max}$ 100 heart and lung sounds were analysed for their spectral content. Sound files were taken from an electronic resource used to train medical students in auscultation\cite{Coviello2014}, and three analyses were performed using MATLAB. 
 
-The first analysis simply took a Fast Fourier Transform (FFT) of the sounds, summed the amplitudes and defined $f_{max}$ as the frequency at which this sum dropped below -80dB. In the second analysis all the sound signals were summed together, an FFT was performed on the resulting signal, and $f_{max}$ was defined to be the frequency at which the amplitude dropped below -80dB. In the third analysis the significant frequency components of each sound was calculated. Significant frequencies were defined as the range which contained 99.9\% of the signal energy. Signal energy was defined to be the sum of the squared FFT amplitudes and an iterative algorithm was used to calculate the range. The algorithm begins with a set that contains the signal's dominant frequency. It then adds to this set the next highest or lowest frequency, which ever has the larger FFT amplitude. The energy content of the set is compared with the energy of the sound, and the process continues until the set contains at least 99.9\% the energy. Finally we took $f_{max}$ to be the largest frequency with at least one sound in which $f_{max}$ was considered significant. 
+The first analysis simply took a Fast Fourier Transform (FFT) of the sounds, summed the amplitudes and defined $f_{max}$ as the frequency at which this sum dropped below -80dB. In the second analysis all the sound signals were summed together, an FFT was performed on the resulting signal, and $f_{max}$ was defined to be the frequency at which the amplitude dropped below -80dB. In the third analysis the significant frequency components of each sound was calculated. Significant frequencies were defined as the range which contained 99.9\% of the signal energy, where energy is the sum of the squared FFT amplitudes. To calculate significant frequencies an iterative algorithm was used. The algorithm begins with a set that contains the signal's dominant frequency, it then adds to this set the next highest or lowest frequency, which ever has the larger FFT amplitude. The energy content of the set is compared with the energy of the sound, and the process continues until the set contains at least 99.9\% of the energy. Finally we took $f_{max}$ to be the largest frequency with at least one sound in which $f_{max}$ was considered significant. 
 
-Analysis 1, 2, and 3 gave $f_{max}$ values 1.5kHz, 2kHz, and 3.5kHz respectively (Fig~\ref{fig:ausc_spectra}), with the most conservative estimate of 3.5kHz coming from the energy content analysis. In order to capture all the heart and lung sounds experienced through a stethoscope, our system needs to handle sound frequencies up to at least 3.5kHz. 
+Analysis 1, 2, and 3 gave $f_{max}$ values 1.5kHz, 2kHz, and 3.5kHz respectively (Fig~\ref{fig:ausc_spectra}), with the most conservative estimate of 3.5kHz coming from the energy content analysis. Thus in order to capture all the heart and lung sounds experienced through a stethoscope, our system needs to handle sound frequencies up to at least 3.5kHz. 
 \begin{figure}[htb]
 	\centering
 	\fbox{
