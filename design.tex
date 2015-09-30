@@ -5,39 +5,41 @@ What are our system specs?
 
 \section{System Overview}
 Our wireless stethoscope consists of seven subsystems in order to transfer the auscultation sound signal to a speaker (Fig~\ref{fig:sys_overview}), they are
-\begin{enumerate}
-	\item Sensor,
+\begin{itemize}
+	\item Signal sensor,
 	\item Signal amplification,
 	\item Input circuitry,
 	\item Signal processing,
 	\item Wireless transmission,
 	\item Wired transmission,
 	\item System power.
-\end{enumerate}
-The sensor consists of a conventional stethoscope head coupled to a microphone, which transforms the sound signal into a voltage signal. This signal is too small to drive any circuitry directly, so it is passed through a signal amplification stage, which results in a bipolar signal. After amplification the signal is passed through input circuitry which introduces a 1.65V offset and limits the voltage to within the maximum tolerable values of the micro-controller in the next stage. This offset is required to transform the signal from bipolar to unipolar, as the micro-controller can not read negative voltages. The micro-controller then performs signal processing in the form of a digital filter, so that it will have the same sound characteristics as a conventional stethoscope. Once processed the signal is transmitted to a Blue-tooth module which transmits the data to a Blue-tooth speaker. In addition an audio jack is available to plug in a speaker locally. All these subsystems are powered by a 9V power source, which can be switched between battery and AC-DC wall adapter operation.
+\end{itemize}
 
 \begin{figure}[!ht]
 	\centering
-	\fbox{
-		\includegraphics[resolution=120, width=375px, height=375px]{sys_overview.png}
-	}
+	
+		\includegraphics[resolution=120, width=315px, height=315px]{sys_overview.png}
+	
 	\caption{System overview}
 	\label{fig:sys_overview}
 \end{figure}
 
-\section{Maximum Sound Frequency}
+The sensor consists of a conventional stethoscope head coupled to a microphone, which transforms the sound signal into a voltage signal. This signal is too small to drive any circuitry directly, so it is passed through a signal amplification stage, which results in a bipolar signal. After amplification the signal is passed through input circuitry which introduces a 1.65V offset and limits the voltage to within the maximum tolerable values of the micro-controller in the next stage. This offset is required to transform the signal from bipolar to unipolar, as the micro-controller can not read negative voltages. The micro-controller then performs signal processing in the form of a digital filter, so that it will have the same sound characteristics as a conventional stethoscope. Once processed the signal is transmitted to a Blue-tooth module which transmits the data to a Blue-tooth speaker. In addition an audio jack is available to plug in a speaker directly. All these subsystems are powered by a 9V power source, which can be switched between battery and an AC-DC wall adapter.
+
+\section{Maximum Sound Frequency} \label{max-sound-freq}
 In order to design our system we must determine what is the maximum sound frequency $f_{max}$ that it needs to measure. This frequency affects the design of the low pass filter and the sampling frequency needed for Analog to Digital Conversion. A lower $f_{max}$ results in a lower sampling frequency, which allows the microprocessor to carry out more computations per sample, and thus allows for higher order digital filters to be implemented. Higher order filters give greater flexibility in digitally manipulating the sound signal, and so would allow us to more accurately reproduce the sound characteristics of a conventional stethoscope.
 
 An $f_{max}$ of 20kHz would work as this is the threshold of human hearing\cite[p.~163]{Stuart2011}, however it has been stated that the majority of heart and lung sounds occur at lower frequencies, within the range 37.5-1kHz\cite{Abella1992}. In order to determine $f_{max}$ 100 heart and lung sounds were analysed for their spectral content. Sound files were taken from an electronic resource used to train medical students in auscultation\cite{Coviello2014}, and three analyses were performed using MATLAB. 
 
 The first analysis simply took a Fast Fourier Transform (FFT) of the sounds, summed the amplitudes and defined $f_{max}$ as the frequency at which this sum dropped below -80dB. In the second analysis all the sound signals were summed together, an FFT was performed on the resulting signal, and $f_{max}$ was defined to be the frequency at which the amplitude dropped below -80dB. In the third analysis the significant frequency components of each sound was calculated. Significant frequencies were defined as the range which contained 99.9\% of the signal energy, where energy is the sum of the squared FFT amplitudes. To calculate significant frequencies an iterative algorithm was used. The algorithm begins with a set that contains the signal's dominant frequency, it then adds to this set the next highest or lowest frequency, which ever has the larger FFT amplitude. The energy content of the set is compared with the energy of the sound, and the process continues until the set contains at least 99.9\% of the energy. Finally we took $f_{max}$ to be the largest frequency with at least one sound in which $f_{max}$ was considered significant. 
 
-Analysis 1, 2, and 3 gave $f_{max}$ values 1.5kHz, 2kHz, and 3.5kHz respectively (Fig~\ref{fig:ausc_spectra}), with the most conservative estimate of 3.5kHz coming from the energy content analysis. Thus in order to capture all the heart and lung sounds experienced through a stethoscope, our system needs to handle sound frequencies up to at least 3.5kHz. 
+Analysis 1, 2, and 3 gave $f_{max}$ values 1.9kHz, 1.9kHz, and 4.0kHz respectively (Fig~\ref{fig:ausc_spectra}). If we use the most conservative result then our stethoscope needs to be able to measure and process frequencies up to at least 4.0kHz in order to capture all heart and lung sounds.
+
 \begin{figure}[htb]
 	\centering
-	\fbox{
-		\includegraphics[width=120mm]{auscultation_spectra3.png}
-	}
+	% \fbox{
+		\includegraphics[width=120mm]{auscultation_spectra.png}
+	% }
 	\caption{Frequency spectra of auscultation sounds}
 	\label{fig:ausc_spectra}
 \end{figure}
@@ -48,8 +50,10 @@ How we coupled microphone to stethoscope \\
 Microphone circuit
 
 \section{Signal Amplification}
-Instrumentation amplifier
-Low pass filter
+\subsection{Operational Amplifiers}
+
+Instrumentation amplifier \cite{Franco2015}
+Low pass filter \cite[p.~279]{Horowitz1989}
 Amplifier
 
 \section{Input Circuitry}
@@ -58,7 +62,39 @@ DC blocker to block out any DC ofset from amplification stage\\
 clipping circuit to protect 0-3.3V range \\
 
 \section{Signal Processing}
-Why we needed and chose the dsPIC33FJ
+A micro-controller processes the sound signal using Infinite Impulse Response (IIR) and Finite Impulse Response (FIR) digital filters. This signal processing is used to filter out unstable feedback frequencies and to reproduce the sound characteristics of a conventional stethoscope. Unstable feedback occurs when the microphone sensor picks up the sound played through the speaker. It happens at specific resonant frequencies which depend on the length of the coupling tube, stethoscope diaphragm, and microphone (section \ref{feedback-freq}). If left untreated these unstable frequencies can grow in amplitude until the user can only hear a large squealing sound from the device, making auscultation impossible. The micro-controller further processes the signal in order to negate the effect that having a smaller coupling tube has on the transmitted sound. The tube length of the original stethoscope is approximately 50cm, while our design has a coupling tube of only 3cm. This difference in length changes the sound transmission properties of the tube, dampening sound frequencies by a different amounts. Negating this ``colouration'' effect helps reproduce the type of sounds doctors currently listen for with a conventional stethoscope.
+
+\subsection{Microprocessor Requirements}
+In order to decide which microprocessor to use we need to first establish the minimum requirements. We consider the bus size, speed, and the amount of working memory needed to implement the digital filters.
+
+Bus sizes for microprocessors generally come in 8, 16, and 32-bit. This bus size determines the bit-depth, which is number of bits stored per sample. A larger bit-depth will require more memory to store samples, however it will suffer less quantization noise, which is the result of truncation error inherent in ADC. For our system we used 16 bit bit-depth because that's the same used in CDs~\cite[p.~27]{Schroder2011}, and we assumed CD audio quality would be sufficient.
+
+To determine how fast the processor needs to be we estimate how many Million Instructions Per Second (MIPS) that it has to execute. To perform this calculation we need the sampling frequency ($F_s$) and the order of the digital filter we wish to implement ($N$). We take $F_s$ to be 40kHz, the Nyquist frequency associated with 20kHz sounds. Although we require to capture sounds only up to 4kHz (Section~\ref{max-sound-freq}) we use the more conservative figure for flexibility to change the design in the future. The order of the filter $N$ was unknown at the time of purchasing the micro-controller, hence an estimate of $N=100$ is used, as our past experience with designing low pass digital filters found this to be a conservative estimate. $N^{th}$ order digital filters are typically calculated as~\cite[p.~164]{Mitra2011}
+\begin{equation}
+y[n] = p_0 x[n] + p_1 x[n-1] + \cdots + p_N x[n-N] - d_1 y[n-1] - \cdots - d_n y[n-N]
+\label{eq:filter}
+\end{equation}
+where $y$ is the sampled output signal, $x$ is the sampled input signal, and $d_i, p_i$ are constant filter coefficients. This requires $2N$ additions and $2N$ multiplications, for a total of $4N$ instructions per output sample $y[n]$. In addition to the digital filter the controller must also transmit 16 bits of data per sample to the Blue-tooth module, giving a required speed of $(16+4N)F_s=(16+400)40\cdot10^3=16.64$ MIPS. Thus if we round up for safety then we require a processor capable of at least 17 MIPS.
+
+The amount of working memory required is calculated by noting that the filter in Eq.~\ref{eq:filter} needs to store $2(N+1)$ coefficients $p_i, d_i$, $N+1$ input signal samples $x$ and $N+1$ output signal samples $y$, for a total of $4(N+1)=404$ 16 bit values, or 808 Bytes of RAM. We round this value up to the nearest KByte and double it as a safety margin to get a minimum requirement of 2KBytes of RAM.
+
+In summary our micro-controller needs to be at least 16-bit, capable of 17 MIPS with at least 2KBytes of working memory.
+
+\subsection{Microprocessors Considered}
+Five microprocessors were considered for the system, the Arduino nano, Raspberry Pi, Blackfin processor from Analog Devices, and the dsPIC from Microchip, and were judged on six factors
+\begin{description}
+\item[Programmability:] If it can be programmed in a high level language, such as C or Python, then there's an advantage in quicker development time compared with a lower level language such as Assembly.
+\item[Interface:] How easy it to upload code to the device
+\item[Size] How large is the processor
+\item[Power Consumption] How much power does it use
+\item[Cost] How expensive is the processor
+
+\end{description}
+
+\input{./table/mcu_decision_matrix.tex}
+
+
+\subsection{Microprocessor Operation}
 Explain how code for dspic works
 
 \section{Wireless Transmission}
