@@ -81,15 +81,17 @@ The amount of working memory required is calculated by noting that the filter in
 In summary our micro-controller needs to be at least 16-bit, capable of 17 MIPS with at least 2KBytes of working memory.
 
 \subsection{Microprocessors Considered}
-Five microprocessors were considered for the system, the Arduino nano, Raspberry Pi, Blackfin processor from Analog Devices, and the dsPIC from Microchip, and were judged on six factors
+Five microprocessors were considered for the system, the Arduino nano, Raspberry Pi, ADSP-BF504 Blackfin processor from Analog Devices, and the dsPIC33-FJ64GP802 from Microchip. Five factors were taken into consideration in deciding which to use.
+
 \begin{description}
 \item[Programmability:] If it can be programmed in a high level language, such as C or Python, then there's an advantage in quicker development time compared with a lower level language such as Assembly.
-\item[Interface:] How easy it to upload code to the device
-\item[Size] How large is the processor
-\item[Power Consumption] How much power does it use
-\item[Cost] How expensive is the processor
-
+\item[Interface:] Is it relatively quick to upload code to the device, or must it be continually disconnected from the circuit?
+\item[Size:] Will the size of the microprocessor impact on the overall size of the stethoscope?
+\item[Speed:] Can the device handle the required computation?
+\item[Cost:] Is it cheap enough?
 \end{description}
+
+The Arduino nano is programmed in Arduino's Integrated Development Environment (IDE), through a USB cable connected to a computer. It supports a variant on the C language with access to libraries to facilitate device input and output. Measuring approximately 3cm-by-10cm in size it has an appreciable footprint size, but not prohibitive. The main limitation is 
 
 \input{./table/mcu_decision_matrix.tex}
 
