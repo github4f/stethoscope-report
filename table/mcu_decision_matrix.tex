@@ -4,7 +4,7 @@
 \begin{tabular}{rc|cccc}
 
 \hline
-\multirow{2}{*}{\textbf{Consideration}} & 
+\multirow{2}{*}{\textbf{Factor}} & 
 \multirow{2}{*}{\textbf{weight}} & 
 \textbf{Arduino} & 
 \textbf{Raspberry} & 
@@ -13,22 +13,25 @@
  & & \textbf{(nano)} & \textbf{pi} & \textbf{Blackfin} & \\
 \hline
 
-Programmability & 7 & 10 & 10 & 10 & 10 \\
+Coding & 7 & 10 & 10 & 10 & 10 \\ \hline
 
-\multirow{2}{*}{Interface} & \multirow{2}{*}{10} & \multirow{2}{*}{10} & \multirow{2}{*}{10} & 1  & \multirow{2}{*}{8} \\
-& & & & (dev board required) \\
+Interface & 10 & 10 & 10 & 1  & 10 \\
+& & (USB cable) & (USB cable) & (dev board / SMD) & (programmer/DIP) \\
+\hline
 
-\multirow{2}{*}{Size} & \multirow{2}{*}{9} & 7 & 5 & 10 & 10 \\
-& & ($3cm\times5cm$) & ($10cm\times15cm$) & ($1.2cm\times1.2cm$) & ($0.7cm\times3.6cm$) \\
+Size & 9 & 7 & 5 & 10 & 10 \\
+& & (3cm$\times$5cm) & (10cm$\times$15cm) & (1.2cm$\times$1.2cm) & (0.7cm$\times$3.6cm) \\
+\hline
  
-\multirow{2}{*}{Speed} & \multirow{2}{*}{6} & 0 & 10 & 10 & 10 \\
+Speed & 6 & 0 & 10 & 9 & 7 \\
 & & (16MIPS) & (700MIPS) & (400MIPS) & (40MIPS) \\
+\hline
 
-Cost & 8 & 6 & 4 & 8 & 10 \\ 
+Cost & 8 & 6 & 4 & 5 & 10 \\ 
 & & (\$20) & (\$30) & (\$25) & (\$5) \\
 \hline
 
-\multicolumn{2}{r|}{Total weighted score} & 281 & 307 & 294 & 380 \\ \hline
+\multicolumn{2}{r|}{\textbf{Total weighted score}} & \textbf{281} & \textbf{307} & \textbf{264} & \textbf{382} \\ \hline
 \end{tabular}
 \end{center}
 \label{mcu-decision-matrix}

@@ -44,7 +44,7 @@ Analysis 1, 2, and 3 gave $f_{max}$ values 1.9kHz, 1.9kHz, and 4.0kHz respective
 	\label{fig:ausc_spectra}
 \end{figure}
 
-\section{Sensor}
+\section{Signal Sensor}
 Why we chose microphone vs. laser mic, vs. cap sensor \\
 How we coupled microphone to stethoscope \\
 Microphone circuit
@@ -64,7 +64,7 @@ clipping circuit to protect 0-3.3V range \\
 \section{Signal Processing}
 A micro-controller processes the sound signal using Infinite Impulse Response (IIR) and Finite Impulse Response (FIR) digital filters. This signal processing is used to filter out unstable feedback frequencies and to reproduce the sound characteristics of a conventional stethoscope. Unstable feedback occurs when the microphone sensor picks up the sound played through the speaker. It happens at specific resonant frequencies which depend on the length of the coupling tube, stethoscope diaphragm, and microphone (section \ref{feedback-freq}). If left untreated these unstable frequencies can grow in amplitude until the user can only hear a large squealing sound from the device, making auscultation impossible. The micro-controller further processes the signal in order to negate the effect that having a smaller coupling tube has on the transmitted sound. The tube length of the original stethoscope is approximately 50cm, while our design has a coupling tube of only 3cm. This difference in length changes the sound transmission properties of the tube, dampening sound frequencies by a different amounts. Negating this ``colouration'' effect helps reproduce the type of sounds doctors currently listen for with a conventional stethoscope.
 
-\subsection{Microprocessor Requirements}
+\subsection{Microprocessor Requirements} \label{mcu-requirements}
 In order to decide which microprocessor to use we need to first establish the minimum requirements. We consider the bus size, speed, and the amount of working memory needed to implement the digital filters.
 
 Bus sizes for microprocessors generally come in 8, 16, and 32-bit. This bus size determines the bit-depth, which is number of bits stored per sample. A larger bit-depth will require more memory to store samples, however it will suffer less quantization noise, which is the result of truncation error inherent in ADC. For our system we used 16 bit bit-depth because that's the same used in CDs~\cite[p.~27]{Schroder2011}, and we assumed CD audio quality would be sufficient.
@@ -81,18 +81,19 @@ The amount of working memory required is calculated by noting that the filter in
 In summary our micro-controller needs to be at least 16-bit, capable of 17 MIPS with at least 2KBytes of working memory.
 
 \subsection{Microprocessors Considered}
-Five microprocessors were considered for the system, the Arduino nano, Raspberry Pi, ADSP-BF504 Blackfin processor from Analog Devices, and the dsPIC33-FJ64GP802 from Microchip. Five factors were taken into consideration in deciding which to use.
+Five microprocessors were considered for the system, the Arduino nano, Raspberry Pi, ADSP-BF504 Blackfin processor from Analog Devices, and the dsPIC33-FJ64GP802 from Microchip. Each processor was scored in terms of its coding, interface, size, speed, and cost, and a weighted total score determined which processor to use. 
 
-\begin{description}
-\item[Programmability:] If it can be programmed in a high level language, such as C or Python, then there's an advantage in quicker development time compared with a lower level language such as Assembly.
-\item[Interface:] Is it relatively quick to upload code to the device, or must it be continually disconnected from the circuit?
-\item[Size:] Will the size of the microprocessor impact on the overall size of the stethoscope?
-\item[Speed:] Can the device handle the required computation?
-\item[Cost:] Is it cheap enough?
-\end{description}
+Coding relates to what programming language the processor can be coded in. Languages such as C and Python are considered higher level than Assembly for example, and are more desirable to code in because it is quicker to develop in these languages, which will help us meet the time constraints of the project. 
 
-The Arduino nano is programmed in Arduino's Integrated Development Environment (IDE), through a USB cable connected to a computer. It supports a variant on the C language with access to libraries to facilitate device input and output. Measuring approximately 3cm-by-10cm in size it has an appreciable footprint size, but not prohibitive. The main limitation is 
+Interface describes how easy it is to upload a program to the device. We wish to have the unit programmable while in a circuit in order to minimise the time it takes to debug the hardware and software. If it has to be disconnect or unplugged from our circuit for each upload iteration this could be prohibitively time consuming. 
 
+The size of the processor will affect the size of our stethoscope. If it is too large to be comfortably held in the hand then it will not have met its specifications, thus we require a processor that won't greatly increase the size of our final design.
+
+Speed is constrained to be at least 17MIPS (Section~\ref{mcu-requirements}), anything above this is considered a bonus as it allows for further flexibility in filter design. 
+
+Finally we considered cost, by minimising the processor cost we minimise the cost of our final device and thus the likelihood of it being used or purchased.
+
+From our weighted total scores we decided to use the dsPIC33-FJ64GP802 microprocessor (Table~\ref{mcu-decision-matrix}). The analysis estimated MIPS to be the clock frequency of the device, which meant the Adruino was not fast enough to perform the required filtering computation. The Raspberry pi provided the greatest speed however it was both the largest and most expensive option, which made it less feasible. The Blackfin BF504 provided excellent speed however it was only sold in surface mount packages or as part of a development board, making it difficult to prototype onto a bread board. Thus because of its low cost, small form factor, and ability to handle the required computation we decided to use the dsPIC.
 \input{./table/mcu_decision_matrix.tex}
 
 
