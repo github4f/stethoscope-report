@@ -1,17 +1,32 @@
 \begin{table}[htbp]
 \caption{Microcontroller decision matrix}
 \begin{center}
-\begin{tabular}{lccccc}
+\begin{tabular}{rc|cccc}
+
 \hline
-\textbf{Consideration} & \textbf{weighting} & \textbf{Arduino} & \textbf{Raspberry} & \textbf{AD Blackfin} & \textbf{dsPIC} \\ 
+\multirow{2}{*}{\textbf{Consideration}} & 
+\multirow{2}{*}{\textbf{weight}} & 
+\textbf{Arduino} & 
+\textbf{Raspberry} & 
+\textbf{AD} & 
+\multirow{2}{*}{\textbf{dsPIC}} \\ 
  & & \textbf{(nano)} & \textbf{pi} & \textbf{Blackfin} & \\
 \hline
-Programmability & 7 & 10 & 10 & 10 & 10 \\ 
-Interface & 10 & 10 & 10 & 1 & 8\\
-Size & 9 & 7 & 5 & 10 & 10 \\
-Speed & 6 & 0 & 10 & 10 & 10 \\
+
+Programmability & 7 & 10 & 10 & 10 & 10 \\
+
+\multirow{2}{*}{Interface} & \multirow{2}{*}{10} & \multirow{2}{*}{10} & \multirow{2}{*}{10} & 1  & \multirow{2}{*}{8} \\
+& & & & (dev board required) \\
+
+\multirow{2}{*}{Size} & \multirow{2}{*}{9} & 7 & 5 & 10 & 10 \\
+& & ($3cm\times5cm$) & ($10cm\times15cm$) & ($1.2cm\times1.2cm$) & ($0.7cm\times3.6cm$) \\
+ 
+\multirow{2}{*}{Speed} & \multirow{2}{*}{6} & 0 & 10 & 10 & 10 \\
+& & 0 & 10 & 10 & 10 \\
+
 Cost & 8 & 6 & 4 & 8 & 10 \\ \hline
-\multicolumn{2}{r}{Total weighted score} & 281 & 307 & 294 & 380 \\ \hline
+
+\multicolumn{2}{r|}{Total weighted score} & 281 & 307 & 294 & 380 \\ \hline
 \end{tabular}
 \end{center}
 \label{mcu-decision-matrix}
