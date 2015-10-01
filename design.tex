@@ -18,7 +18,7 @@ Our wireless stethoscope consists of seven subsystems in order to transfer the a
 \begin{figure}[!ht]
 	\centering
 	
-		\includegraphics[resolution=120, width=315px, height=315px]{sys_overview.png}
+		\includegraphics[resolution=120, width=315px, height=315px]{sys_overview2.png}
 	
 	\caption{System overview}
 	\label{fig:sys_overview}
@@ -81,7 +81,7 @@ The amount of working memory required is calculated by noting that the filter in
 In summary our micro-controller needs to be at least 16-bit, capable of 17 MIPS with at least 2KBytes of working memory.
 
 \subsection{Microprocessors Considered}
-Five microprocessors were considered for the system, the Arduino nano, Raspberry Pi, ADSP-BF504 Blackfin processor from Analog Devices, and the dsPIC33-FJ64GP802 from Microchip. Each processor was scored in terms of its coding, interface, size, speed, and cost, and a weighted total score determined which processor to use. 
+We considered five microprocessors for the system, the Arduino nano, Raspberry Pi, ADSP-BF504 Blackfin processor from Analog Devices, and the dsPIC33-FJ64GP802 from Microchip. Each processor was scored in terms of its coding, interface, size, speed, and cost, and a weighted total score determined which processor to use. 
 
 Coding relates to what programming language the processor can be coded in. Languages such as C and Python are considered higher level than Assembly for example, and are more desirable to code in because it is quicker to develop in these languages, which will help us meet the time constraints of the project. 
 
@@ -89,16 +89,30 @@ Interface describes how easy it is to upload a program to the device. We wish to
 
 The size of the processor will affect the size of our stethoscope. If it is too large to be comfortably held in the hand then it will not have met its specifications, thus we require a processor that won't greatly increase the size of our final design.
 
-Speed is constrained to be at least 17MIPS (Section~\ref{mcu-requirements}), anything above this is considered a bonus as it allows for further flexibility in filter design. 
+Speed is constrained to be at least 17 MIPS (Section~\ref{mcu-requirements}), anything above this is considered a bonus as it allows for further flexibility in filter design. 
 
 Finally we considered cost, by minimising the processor cost we minimise the cost of our final device and thus the likelihood of it being used or purchased.
 
-From our weighted total scores we decided to use the dsPIC33-FJ64GP802 microprocessor (Table~\ref{mcu-decision-matrix}). The analysis estimated MIPS to be the clock frequency of the device, which meant the Adruino was not fast enough to perform the required filtering computation. The Raspberry pi provided the greatest speed however it was both the largest and most expensive option, which made it less feasible. The Blackfin BF504 provided excellent speed however it was only sold in surface mount packages or as part of a development board, making it difficult to prototype onto a bread board. Thus because of its low cost, small form factor, and ability to handle the required computation we decided to use the dsPIC.
+From our weighted total scores we decided to use the dsPIC33-FJ64GP802 microprocessor (Table~\ref{mcu-decision-matrix}). In our scoring analysis we estimated the speed to be the clock frequency of the device, which meant the Adruino was not fast enough to perform the required filtering computation. The Raspberry pi provided the greatest speed however it was both the largest and most expensive option, which made it less feasible. The Blackfin BF504 also provided considerable speed however it was only sold in surface mount packages or as part of a development board, making it difficult to prototype onto a bread board. Thus because of its low cost, small form factor, and ability to handle the required computation we decided to use the dsPIC.
 \input{./table/mcu_decision_matrix.tex}
 
 
-\subsection{Microprocessor Operation}
-Explain how code for dspic works
+\subsection{dsPIC33 micro-controller}
+\subsubsection{Features}
+We used a dsPIC33-FJ64GP802 microprocessor to process the sound signal. The chip contains an ADC, audio DAC and dedicated Digital Signal Processing (DSP) engine, which make it well suited to filter our signal. The DSP engine (Fig.~\ref{fig:dsp_block}) is capable of retrieving two words of data from memory, multiplying them and summing them to a running total in a single instruction cycle. This operation of Multiplying and ACcumulating (MAC) is frequently used in digital filters, and so being able to perform a MAC in a single cycle makes the chip efficient for our purposes. The ADC is capable of converting 500k 12-bit samples per second through successive approximation conversion, so it is fast enough to handle our maximum requirement of 40k samples per second. ADC conversions are also written directly to memory, without any CPU intervention, through the chip's Direct Memory Access (DMA) feature, resulting in less overhead and allowing the chip to execute more instructions per sample. Finally the DAC is designed specifically for audio applications, and is capable of producing up to 40kHz signals, making it suitable for our application as we wish to output a filtered sound signal. 
+
+\begin{figure}[!htb]
+	\centering
+	% \fbox{
+		\includegraphics[width=130mm, height=150mm]{dsp_engine.png}
+	% }
+	\caption{Micro-controller block diagram, taken from dsPIC33 data-sheet \cite[p.~14]{dspic_datasheet}}
+	\label{fig:dsp_block}
+\end{figure}
+
+\subsubsection{Operation}
+
+
 
 \section{Wireless Transmission}
 Yudong
