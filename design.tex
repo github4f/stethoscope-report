@@ -37,9 +37,9 @@ Analysis 1, 2, and 3 gave $f_{max}$ values 1.9kHz, 1.9kHz, and 4.0kHz respective
 
 \begin{figure}[htb]
 	\centering
-	% \fbox{
+	 \fbox{
 		\includegraphics[width=120mm]{auscultation_spectra.png}
-	% }
+	 }
 	\caption{Frequency spectra of auscultation sounds}
 	\label{fig:ausc_spectra}
 \end{figure}
@@ -103,24 +103,24 @@ We used a dsPIC33-FJ64GP802 microprocessor to process the sound signal. The chip
 
 \begin{figure}[!ht]
 	\centering
-	% \fbox{
-		\includegraphics[width=110mm]{dsp_engine.png}
-	% }
-	\caption{Micro-controller block diagram, taken from dsPIC33 data-sheet \cite[p.~14]{dspic_datasheet}}
+	\fbox{
+		\includegraphics[width=130mm]{dsp_engine.png}
+	}
+	\caption{Micro-controller with DSP-engine and two address generator units to pre-fetch data for Multiply and Accumulate instruction (MAC). Taken from dsPIC33F data-sheet \cite[p.~14]{dspic_datasheet}}
 	\label{fig:dsp_block}
 \end{figure}
 
 \subsubsection{Operation}
-The dsPIC utilises two memory locations, buffers A and B, to apply the digital filter. In one cycle the ADC writes to buffer A, while the filter function operates on data in buffer B and outputs the result to the DAC (Figure~\ref{fig:mcu_operation}). In the next cycle the ADC writes to buffer B while the filter is applied to buffer A samples. This ``ping-pong'' switching between the two buffers allows the ADC to sample data while the dsPIC simultaneously applies a digital filter to previous data samples, which results in a continuously filtered output signal. The filter is executed using the IIR and FIR functions of the DSP library that is included with Microchip's dsPIC Integrated Development Environment ``MPLABX''.
+The dsPIC utilises two memory locations, buffers A and B, to apply the digital filter. In one cycle the ADC writes to buffer A, while the filter function operates on data in buffer B and outputs the result to the DAC (Fig.~\ref{fig:mcu_operation}). In the next cycle the ADC writes to buffer B while the filter is applied to buffer A samples. This ``ping-pong'' switching between the two buffers allows the ADC to sample data while the dsPIC simultaneously applies a digital filter to previous data samples, which results in a continuously filtered output signal. The filter is executed using the IIR and FIR functions of the DSP library that is included with Microchip's dsPIC Integrated Development Environment ``MPLABX''.
 
-It is important to assure that the rate at which buffer's A and B are written to by the ADC and read from by the DAC are synchronized, otherwise the output signal will be distorted. If the ADC writes data at a different rate than the DAC reads it then the output signal will be shifted in frequency compared to the input signal. It is also possible for newer input samples to overwrite previous ones before they've been processed, corrupting that block of data. The time at which the ADC samples is controlled by an internal counter. The counter raises an interrupt after a programmed number of system clock cycles, which gives us great flexibility in setting the ADC sampling frequency. The DAC clock however is constrained to run off an auxiliary clock, scaled down by a selectable factor from between 1 to 128, which restricts what sampling frequencies we can use the most.
+It is important to assure that the rate at which buffer's A and B are written to by the ADC and read from by the DAC are synchronized, otherwise the output signal will be distorted. If the ADC writes data at a different rate than the DAC reads it then the output signal will be shifted in frequency compared to the input signal. It is also possible for newer input samples to overwrite previous ones before they've been processed, corrupting that block of data. The time at which the ADC samples is controlled by an internal counter. The counter raises an interrupt after a programmed number of system clock cycles, which gives us great flexibility in setting the ADC sampling frequency. The DAC clock however is constrained to run off an auxiliary clock, scaled down by a selectable factor from between 1 to 128, which restricts what sampling frequencies we can use the most. Hence our sampling frequency for the system was set to 48kHz in order to satisfy the ADC/DAC synchronization condition.
 
 \begin{figure}[!htb]
 	\centering
 	% \fbox{
 		\includegraphics[width=90mm]{mcu_operation.png}
 	% }
-	\caption{Micro-controller sampling and filtering process}
+	\caption{Micro-controller uses two memory buffers to simultaneously sample and filter sound data}
 	\label{fig:mcu_operation}
 \end{figure}
 
