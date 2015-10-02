@@ -26,40 +26,78 @@ Our wireless stethoscope consists of seven subsystems in order to transfer the a
 
 The sensor consists of a conventional stethoscope head coupled to a microphone, which transforms the sound signal into a voltage signal. This signal is too small to drive any circuitry directly, so it is passed through a signal amplification stage, which results in a bipolar signal. After amplification the signal is passed through input circuitry which introduces a 1.65V offset and limits the voltage to within the maximum tolerable values of the micro-controller in the next stage. This offset is required to transform the signal from bipolar to unipolar, as the micro-controller can not read negative voltages. The micro-controller then performs signal processing in the form of a digital filter, so that it will have the same sound characteristics as a conventional stethoscope. Once processed the signal is transmitted to a Blue-tooth module which transmits the data to a Blue-tooth speaker. In addition an audio jack is available to plug in a speaker directly. All these subsystems are powered by a 9V power source, which can be switched between battery and an AC-DC wall adapter.
 
-\section{Maximum Sound Frequency} \label{max-sound-freq}
-In order to design our system we must determine what is the maximum sound frequency $f_{max}$ that it needs to measure. This frequency affects the design of the low pass filter and the sampling frequency needed for Analog to Digital Conversion. A lower $f_{max}$ results in a lower sampling frequency, which allows the microprocessor to carry out more computations per sample, and thus allows for higher order digital filters to be implemented. Higher order filters give greater flexibility in digitally manipulating the sound signal, and so would allow us to more accurately reproduce the sound characteristics of a conventional stethoscope.
-
-An $f_{max}$ of 20kHz would work as this is the threshold of human hearing\cite[p.~163]{Stuart2011}, however it has been stated that the majority of heart and lung sounds occur at lower frequencies, within the range 37.5-1kHz\cite{Abella1992}. In order to determine $f_{max}$ 100 heart and lung sounds were analysed for their spectral content. Sound files were taken from an electronic resource used to train medical students in auscultation\cite{Coviello2014}, and three analyses were performed using MATLAB. 
-
-The first analysis simply took a Fast Fourier Transform (FFT) of the sounds, summed the amplitudes and defined $f_{max}$ as the frequency at which this sum dropped below -80dB. In the second analysis all the sound signals were summed together, an FFT was performed on the resulting signal, and $f_{max}$ was defined to be the frequency at which the amplitude dropped below -80dB. In the third analysis the significant frequency components of each sound was calculated. Significant frequencies were defined as the range which contained 99.9\% of the signal energy, where energy is the sum of the squared FFT amplitudes. To calculate significant frequencies an iterative algorithm was used. The algorithm begins with a set that contains the signal's dominant frequency, it then adds to this set the next highest or lowest frequency, which ever has the larger FFT amplitude. The energy content of the set is compared with the energy of the sound, and the process continues until the set contains at least 99.9\% of the energy. Finally we took $f_{max}$ to be the largest frequency with at least one sound in which $f_{max}$ was considered significant. 
-
-Analysis 1, 2, and 3 gave $f_{max}$ values 1.9kHz, 1.9kHz, and 4.0kHz respectively (Fig~\ref{fig:ausc_spectra}). If we use the most conservative result then our stethoscope needs to be able to measure and process frequencies up to at least 4.0kHz in order to capture all heart and lung sounds.
-
-\begin{figure}[htb]
-	\centering
-	 \fbox{
-		\includegraphics[width=120mm]{auscultation_spectra.png}
-	 }
-	\caption{Frequency spectra of auscultation sounds}
-	\label{fig:ausc_spectra}
-\end{figure}
-
 \section{Signal Sensor}
 Why we chose microphone vs. laser mic, vs. cap sensor \\
 How we coupled microphone to stethoscope \\
 Microphone circuit
 
-\section{Signal Amplification}
-\subsection{Operational Amplifiers}
 
-Instrumentation amplifier \cite{Franco2015}
-Low pass filter \cite[p.~279]{Horowitz1989}
-Amplifier
+
+\section{Signal Amplification}
+To amplify the microphone signal we used an instrumentation amplifier, followed by a Low Pass Filter (LPF), and then two non-inverting amplifiers.
+The instrumentation amplifier (Fig.~\ref{fig:inamp_circuit}) was used to get an accurate measurement of the microphone signal. It does so because it acts as a difference amplifier with a large Common Mode Rejection Ratio (CMMR), which allows it to significantly reject any noise present on the ground plane\cite[p.~86]{Franco2015}, leaving only the microphone signal. 
+\begin{figure}[!htb]
+	\centering
+	\fbox{
+		\includegraphics[width=130mm]{instrument_amp_circuit.png}
+	}
+	\caption{Instrumentation Amplifier circuit used to pick up signal from microphone}
+	\label{fig:inamp_circuit}
+\end{figure}
+This signal is then passed through a LPF to suppress any signal above 20kHz, which is necessary to prevent aliasing in the ADC process of the signal processing stage. The LPF (Fig.~\ref{fig:LPF_circuit}) is implemented by using a second order Sallen-Key configuration\cite[p.~279]{Horowitz1989} and can be designed for different cut-off frequencies through resistor and capacitor values C1, C2, R12, and R13. 
+\begin{figure}[!htb]
+	\centering
+	\fbox{
+		\includegraphics[width=100mm]{LPF_circuit.png}
+	}
+	\caption{Low Pass Filter (LPF) circuit used to attenuate signals below 20kHz}
+	\label{fig:LPF_circuit}
+\end{figure}
+Finally the two non-inverting amplifiers are used to amplify the signal (Fig.~\ref{fig:amplifier_circuit}). We used two amplifiers in series so that each individual amplifier may have a smaller gain. By having having lower gains the output resistors RA2 and RA3 are smaller, which results in less thermal, or ``Johnson'' noise, and thus a clear sound signal. We used non-inverting configuration because of its high input impedance. This effectively decouples the design from the preceding LPF stage as it does not load the output, making design of the amplification stage independent from the LPF. 
+\begin{figure}[!htb]
+	\centering
+	\fbox{
+		\includegraphics[width=130mm]{amplifier_circuit.png}
+	}
+	\caption{Amplification circuit used to increase sound signal}
+	\label{fig:amplifier_circuit}
+\end{figure}
+We used LM318 op-amps for the instrumentation and non-inverting amplifiers because of its high gain-bandwidth product (15MHz) and slew rate (50$V/\mu s$), which allows for a larger gain without distorting the signal.
 
 \section{Input Circuitry}
-DC blocker to block out any DC ofset from amplification stage\\
-1.6V summing circuit to allow maximum swing\\
-clipping circuit to protect 0-3.3V range \\
+The input circuitry consists of a buffer, summer, and clipping circuit which transform the amplified signal into one that is appropriate for the micro-controller input. The buffer (Fig.~\ref{fig:buffer_circuit}) serves two purposes, firstly it blocks any DC offset introduced from the previous stages, and secondly it decouples these stages from the summing circuit. 
+\begin{figure}[!htb]
+	\centering
+	\fbox{
+		\includegraphics[width=100mm]{buffer_circuit.png}
+	}
+	\caption{Buffer circuit used to isolate input stage from amplification stage, taken from TI LM318 data-sheet\cite{TILM318}}
+	\label{fig:buffer_circuit}
+\end{figure}
+The summing circuit (Fig.~\ref{fig:summing_circuit}) is used to add 1.65V to the signal. This is necessary because the ADC of the next stage can only accept voltages between 0V to 3.3V, and so can only handle a maximum voltage swing of 1.65V. This summer transforms input signals in the range $\pm1.65$V to the necessary ADC input range and allows for the maximum voltage swing to be measured without clipping, leading to less distortion of the auscultation signal. 
+\begin{figure}[!htb]
+	\centering
+	\fbox{
+		\includegraphics[width=130mm]{summing_circuit.png}
+	}
+	\caption{Summing circuit used to introduce 1.65V offset of signal coming into the micro-controller}
+	\label{fig:summing_circuit}
+\end{figure}
+Finally the active clipping circuit (Fig.~\ref{fig:clipping_circuit}) is used to protect the micro-controller input. It does so by allowing all signals in the range 0V-3V to pass through, but clips any signal outside this range. This is necessary because it is likely that signals other than auscultation sounds may be amplified, such as the stethoscope diaphragm being knocked as it is placed on the patient. These unwanted signals may cause brief but large signals that could potentially damage the microprocessor input if left unmitigated. Thus the clipping circuit protects the micro-controller input by limiting the voltage passed through.
+
+\begin{figure}[!htb]
+	\centering
+	\fbox{
+		\includegraphics[width=130mm]{clipping_circuit.png}
+	}
+	\caption{Clipping circuit used to keep input voltage to micro-controller in the range 0-3.3V, taken from \cite[p.~221]{Horowitz1989}}
+	\label{fig:clipping_circuit}
+\end{figure}
+
+We used an LM741 op-amp for all the circuits in the input-stage because it is the cheapest op-amp we know of. Its unity gain bandwidth of 1MHz is sufficient because these circuits don't amplify the signal, they only pass it through. By using these cheaper, ubiquitous op-amps we lower the cost of the overall system. 
+
+Note that both the summing and clipping circuit also require the regulated 3.3V ($V_\text{regulated}$) to function, which is taken from the LM317 voltage regulator that is also used to power the microphone, Blue-tooth module, and micro-controller (Section~\ref{sys_power}).
+
 
 \section{Signal Processing}
 A micro-controller processes the sound signal using Infinite Impulse Response (IIR) and Finite Impulse Response (FIR) digital filters. This signal processing is used to filter out unstable feedback frequencies and to reproduce the sound characteristics of a conventional stethoscope. Unstable feedback occurs when the microphone sensor picks up the sound played through the speaker. It happens at specific resonant frequencies which depend on the length of the coupling tube, stethoscope diaphragm, and microphone (section \ref{feedback-freq}). If left untreated these unstable frequencies can grow in amplitude until the user can only hear a large squealing sound from the device, making auscultation impossible. The micro-controller further processes the signal in order to negate the effect that having a smaller coupling tube has on the transmitted sound. The tube length of the original stethoscope is approximately 50cm, while our design has a coupling tube of only 3cm. This difference in length changes the sound transmission properties of the tube, dampening sound frequencies by a different amounts. Negating this ``colouration'' effect helps reproduce the type of sounds doctors currently listen for with a conventional stethoscope.
@@ -132,5 +170,5 @@ Yudong
 \section{Wired Transmission}
 Yudong
 
-\section{System Power}
+\section{System Power} \label{sys_power}
 Yudong
