@@ -76,7 +76,7 @@ y[n] = p_0 x[n] + p_1 x[n-1] + \cdots + p_N x[n-N] - d_1 y[n-1] - \cdots - d_n y
 \end{equation}
 where $y$ is the sampled output signal, $x$ is the sampled input signal, and $d_i, p_i$ are constant filter coefficients. This requires $2N$ additions and $2N$ multiplications, for a total of $4N$ instructions per output sample $y[n]$. In addition to the digital filter the controller must also transmit 16 bits of data per sample to the Blue-tooth module, giving a required speed of $(16+4N)F_s=(16+400)40\cdot10^3=16.64$ MIPS. Thus if we round up for safety then we require a processor capable of at least 17 MIPS.
 
-The amount of working memory required is calculated by noting that the filter in Eq.~\ref{eq:filter} needs to store $2(N+1)$ coefficients $p_i, d_i$, $N+1$ input signal samples $x$ and $N+1$ output signal samples $y$, for a total of $4(N+1)=404$ 16 bit values, or 808 Bytes of RAM. We round this value up to the nearest KByte and double it as a safety margin to get a minimum requirement of 2KBytes of RAM.
+The amount of working memory required is calculated by noting that the filter in Eq.~\ref{eq:filter} needs to store $2(N+1)$ coefficients $(p_i, d_i)$, $N+1$ input signal samples $(x)$ and $N+1$ output signal samples $(y)$, for a total of $4(N+1)=404$ 16 bit values, or 808 Bytes of RAM. We round this value up to the nearest KByte and double it as a safety margin to get a minimum requirement of 2KBytes of RAM.
 
 In summary our micro-controller needs to be at least 16-bit, capable of 17 MIPS with at least 2KBytes of working memory.
 
@@ -101,16 +101,28 @@ From our weighted total scores we decided to use the dsPIC33-FJ64GP802 microproc
 \subsubsection{Features}
 We used a dsPIC33-FJ64GP802 microprocessor to process the sound signal. The chip contains an ADC, audio DAC and dedicated Digital Signal Processing (DSP) engine, which make it well suited to filter our signal. The DSP engine (Fig.~\ref{fig:dsp_block}) is capable of retrieving two words of data from memory, multiplying them and summing them to a running total in a single instruction cycle. This operation of Multiplying and ACcumulating (MAC) is frequently used in digital filters, and so being able to perform a MAC in a single cycle makes the chip efficient for our purposes. The ADC is capable of converting 500k 12-bit samples per second through successive approximation conversion, so it is fast enough to handle our maximum requirement of 40k samples per second. ADC conversions are also written directly to memory, without any CPU intervention, through the chip's Direct Memory Access (DMA) feature, resulting in less overhead and allowing the chip to execute more instructions per sample. Finally the DAC is designed specifically for audio applications, and is capable of producing up to 40kHz signals, making it suitable for our application as we wish to output a filtered sound signal. 
 
-\begin{figure}[!htb]
+\begin{figure}[!ht]
 	\centering
 	% \fbox{
-		\includegraphics[width=130mm, height=150mm]{dsp_engine.png}
+		\includegraphics[width=110mm]{dsp_engine.png}
 	% }
 	\caption{Micro-controller block diagram, taken from dsPIC33 data-sheet \cite[p.~14]{dspic_datasheet}}
 	\label{fig:dsp_block}
 \end{figure}
 
 \subsubsection{Operation}
+The dsPIC utilises two memory locations, buffers A and B, to apply the digital filter. In one cycle the ADC writes to buffer A, while the filter function operates on data in buffer B and outputs the result to the DAC (Figure~\ref{fig:mcu_operation}). In the next cycle the ADC writes to buffer B while the filter is applied to buffer A samples. This ``ping-pong'' switching between the two buffers allows the ADC to sample data while the dsPIC simultaneously applies a digital filter to previous data samples, which results in a continuously filtered output signal. The filter is executed using the IIR and FIR functions of the DSP library that is included with Microchip's dsPIC Integrated Development Environment ``MPLABX''.
+
+It is important to assure that the rate at which buffer's A and B are written to by the ADC and read from by the DAC are synchronized, otherwise the output signal will be distorted. If the ADC writes data at a different rate than the DAC reads it then the output signal will be shifted in frequency compared to the input signal. It is also possible for newer input samples to overwrite previous ones before they've been processed, corrupting that block of data. The time at which the ADC samples is controlled by an internal counter. The counter raises an interrupt after a programmed number of system clock cycles, which gives us great flexibility in setting the ADC sampling frequency. The DAC clock however is constrained to run off an auxiliary clock, scaled down by a selectable factor from between 1 to 128, which restricts what sampling frequencies we can use the most.
+
+\begin{figure}[!htb]
+	\centering
+	% \fbox{
+		\includegraphics[width=90mm]{mcu_operation.png}
+	% }
+	\caption{Micro-controller sampling and filtering process}
+	\label{fig:mcu_operation}
+\end{figure}
 
 
 
