@@ -9,20 +9,20 @@
 \usepackage{amsfonts}
 \usepackage{verbatim}
 \usepackage{cite}
-%\usepackage{apacite}
 \usepackage{setspace}
 \usepackage{textcomp}
 \usepackage{graphicx}
+	\graphicspath{{./pic/}}
 \usepackage{multirow}
 \usepackage[table]{xcolor}
+	\definecolor{lightgray}{gray}{0.9}
 \usepackage{pdfpages}
 \usepackage{fancyhdr}
-\pagestyle{fancy}
-
-\definecolor{lightgray}{gray}{0.9}
+	\pagestyle{fancy}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fixltx2e}
 
 \setcounter{tocdepth}{2}
-\graphicspath{{./pic/}}
 \onehalfspacing
 
 \begin{document}
@@ -36,7 +36,6 @@
 \input{discussion.tex}
 \input{conclusion.tex}
 
-%\bibliographystyle{apacite}
 \bibliographystyle{ieeetr}
 \bibliography{references}
 \end{document}

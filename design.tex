@@ -27,11 +27,51 @@ Our wireless stethoscope consists of seven subsystems in order to transfer the a
 The sensor consists of a conventional stethoscope head coupled to a microphone, which transforms the sound signal into a voltage signal. This signal is too small to drive any circuitry directly, so it is passed through a signal amplification stage, which results in a bipolar signal. After amplification the signal is passed through input circuitry which introduces a 1.65V offset and limits the voltage to within the maximum tolerable values of the micro-controller in the next stage. This offset is required to transform the signal from bipolar to unipolar, as the micro-controller can not read negative voltages. The micro-controller then performs signal processing in the form of a digital filter, so that it will have the same sound characteristics as a conventional stethoscope. Once processed the signal is transmitted to a Blue-tooth module which transmits the data to a Blue-tooth speaker. In addition an audio jack is available to plug in a speaker directly. All these subsystems are powered by a 9V power source, which can be switched between battery and an AC-DC wall adapter.
 
 \section{Signal Sensor}
-Why we chose microphone vs. laser mic, vs. cap sensor \\
-How we coupled microphone to stethoscope \\
-Microphone circuit
+Our signal sensor consists of a conventional stethoscope head coupled to an electronic sensor. We considered using three different types of electronic sensors to detect the stethoscope sounds, a capacitive, laser and microphone sensor. Capacitive sensors are based on flat-plate capacitors, and can detect a voltage signal between two conducting plates when the distance between them changes\cite[p.104]{Regtien2012} (Fig.~\ref{fig:cap_sensor}). By covering the stethoscope diaphragm in a conductive material it can act as one plate of the capacitive sensor, while a second, smaller plate would have to somehow be mounted inside the stethoscope head. When sound is incident on the diaphragm it causes small vibrations that can then be picked up by the sensor and transmitted as a signal.
+\begin{figure}[!tbh]
+	\centering
+	\fbox{
+		\includegraphics[width=60mm]{cap_sensor.png}
+	}
+	\caption{Capacitive sensor measuring changes in distance to object, image from MTI instruments\cite{MTI_capsensor}}
+	\label{fig:cap_sensor}
+\end{figure}
+A laser configuration would work by coating the stethoscope diaphragm in a reflective material. When laser light is incident on the material it is reflected to a photo diode within the stethoscope head. This reflected light will be modulated by the small vibrations present on the diaphragm, which contain the sound signal of interest. We can then reconstruct the original sound signal by measuring either the presence, absence or size of the detected beam spot\cite{laserMic} (Fig.~\ref{fig:laser_sensor}).  
+\begin{figure}[!tb]
+	\centering
+	\fbox{
+		\includegraphics[width=60mm]{laser_sensor.png}
+	}
+	\caption{Using a laser beam to remotely detect acoustic signals, taken from  Moses \& Trout 2006 \cite{laserMic}}
+	\label{fig:laser_sensor}
+\end{figure}
+The microphone sensor works in a similar manner to the capacitive sensor, however the conducting plates are stored inside a packaged unit (Fig~\ref{fig:mic_condenser}) and it detects sound signals as opposed to the distance to the diaphragm. One of the plates is is made from a very light material and acts as a diaphragm which vibrates when sound waves hit it. As the distance between the capacitor plates changes due to the sound vibrations the capacitance increases (plates closer together) and decreases. This change in capacitance gives rise to a change in voltage and hence an electrical signal. 
+\begin{figure}[!tb]
+	\centering
+	\fbox{
+		\includegraphics[width=60mm]{mic_condenser.png}
+	}
+	\caption{Electret microphone}
+	\label{fig:mic_condenser}
+\end{figure}
 
-
+We decided to use a microphone sensor because it was the easiest to couple to the stethoscope. All that is required is a small length of the already available stethoscope tubing to attach the microphone to the head. The laser and capacitor sensors however would require either a capacitive plate or photo diode circuit inside the stethoscope head, which has very limited room, making sensor placement a formidable challenge in these cases. We used the POM-5238P-R electret microphone because of its flat response curve for audible frequencies (Fig~\ref{fig:mic_sensitivity}). This means that it wouldn't add any artefacts to the measured sound, such as preferentially transmitting higher frequencies, and so would more closely resemble a traditional stethoscope's sound qualities. In addition it was the most sensitive microphone we could purchase (-38dB) that had a suitable size to couple onto the end of the stethoscope tubing. This high sensitivity would allow us to detect the weak sound signals present within the stethoscope head. The mic signal is obtained by supplying it with a 3.3V source and using a decoupling capacitor to remove the DC component of the device (Fig~\ref{fig:mic_circuit}).
+\begin{figure}[!htb]
+	\centering
+	\fbox{
+		\includegraphics[width=120mm]{mic_sensitivity.png}
+	}
+	\caption{Plot of POM-5238P-R microphone sensitivity vs. frequency, taken from  data-sheet}
+	\label{fig:mic_sensitivity}
+\end{figure}
+\begin{figure}[!htb]
+	\centering
+	\fbox{
+		\includegraphics[width=70mm]{mic_circuit.png}
+	}
+	\caption{Microphone electrical circuit. $V_s=3.3$V from regulator used to power Blue tooth module and microprocessor}
+	\label{fig:mic_circuit}
+\end{figure}
 
 \section{Signal Amplification}
 To amplify the microphone signal we used an instrumentation amplifier, followed by a Low Pass Filter (LPF), and then two non-inverting amplifiers.
@@ -53,7 +93,7 @@ This signal is then passed through a LPF to suppress any signal above 20kHz, whi
 	\caption{Low Pass Filter (LPF) circuit used to attenuate signals below 20kHz}
 	\label{fig:LPF_circuit}
 \end{figure}
-Finally the two non-inverting amplifiers are used to amplify the signal (Fig.~\ref{fig:amplifier_circuit}). We used two amplifiers in series so that each individual amplifier may have a smaller gain. By having having lower gains the output resistors RA2 and RA3 are smaller, which results in less thermal, or ``Johnson'' noise, and thus a clear sound signal. We used non-inverting configuration because of its high input impedance. This effectively decouples the design from the preceding LPF stage as it does not load the output, making design of the amplification stage independent from the LPF. 
+Finally the two non-inverting amplifiers are used to amplify the signal (Fig.~\ref{fig:amplifier_circuit}). We used two amplifiers in series so that each individual amplifier may have a smaller gain. By having having lower gains the output resistors RA2 and RA3 are smaller, which results in less thermal, or ``Johnson'' noise, and thus a clearer sound signal. We used non-inverting configuration because of its high input impedance. This effectively decouples the design from the preceding LPF stage as it does not load the output, making design of the amplification stage independent from the LPF. 
 \begin{figure}[!htb]
 	\centering
 	\fbox{
@@ -142,7 +182,7 @@ We used a dsPIC33-FJ64GP802 microprocessor to process the sound signal. The chip
 \begin{figure}[!ht]
 	\centering
 	\fbox{
-		\includegraphics[width=130mm]{dsp_engine.png}
+		\includegraphics[width=150mm]{dsp_engine2.png}
 	}
 	\caption{Micro-controller with DSP-engine and two address generator units to pre-fetch data for Multiply and Accumulate instruction (MAC). Taken from dsPIC33F data-sheet \cite[p.~14]{dspic_datasheet}}
 	\label{fig:dsp_block}
@@ -155,9 +195,9 @@ It is important to assure that the rate at which buffer's A and B are written to
 
 \begin{figure}[!htb]
 	\centering
-	% \fbox{
-		\includegraphics[width=90mm]{mcu_operation.png}
-	% }
+	\fbox{
+		\includegraphics[width=130mm]{mcu_operation2.png}
+	}
 	\caption{Micro-controller uses two memory buffers to simultaneously sample and filter sound data}
 	\label{fig:mcu_operation}
 \end{figure}
