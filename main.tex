@@ -1,5 +1,5 @@
- % \documentclass[12pt, twoside, draft]{report}
- \documentclass[12pt, twoside]{report}
+ % \documentclass[a4paper, 12pt, twoside, draft]{report}
+ \documentclass[a4paper, 12pt, twoside]{report}
 
 % \usepackage{showlabels} % shows labels for figures
 % \usepackage{showkeys}	% shows labels for equations
@@ -19,6 +19,10 @@
 \usepackage{pdfpages}
 \usepackage{fancyhdr}
 	\pagestyle{fancy}
+	\fancyhead[LE,RO]{\slshape \rightmark}
+	\fancyhead[LO,RE]{\slshape \leftmark}
+	\fancyfoot[C]{\thepage}
+	\renewcommand{\chaptermark}[1]{\markboth{\thechapter.\ \MakeUppercase{#1}}{}}
 \usepackage[hidelinks]{hyperref}
 \usepackage{fixltx2e}
 
@@ -29,7 +33,8 @@
 \includepdf{title.pdf}
 \input{abstract.tex}
 \tableofcontents
-% \listoffigures
+\listoffigures
+\listoftables
 \input{intro.tex}
 \input{design.tex}
 \input{results.tex} 
