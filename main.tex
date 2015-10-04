@@ -25,13 +25,19 @@
 	\renewcommand{\chaptermark}[1]{\markboth{\thechapter.\ \MakeUppercase{#1}}{}}
 \usepackage[hidelinks]{hyperref}
 \usepackage{fixltx2e}
+\usepackage{titlesec}
+\titleformat{\chapter}[display]   
+{\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{20pt}{\Huge}   
+\titlespacing*{\chapter}{0pt}{-50pt}{40pt}
 
+\usepackage{notoccite}
 \setcounter{tocdepth}{2}
 \onehalfspacing
 
 \begin{document}
 \includepdf{title.pdf}
 \input{abstract.tex}
+\input{contributions.tex}
 \tableofcontents
 \listoffigures
 \listoftables
