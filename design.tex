@@ -1,18 +1,15 @@
 \chapter{Design} \label{design}
 
-\section{Design Specification}
-What are our system specs?
-
 \section{System Overview}
 Our wireless stethoscope consists of seven subsystems in order to transfer the auscultation sound signal to a speaker (Fig~\ref{fig:sys_overview}), they are
 \begin{itemize}
+	\item System power,
 	\item Signal sensor,
 	\item Signal amplification,
 	\item Input circuitry,
 	\item Signal processing,
 	\item Wireless transmission,
-	\item Wired transmission,
-	\item System power.
+	\item Wired transmission.
 \end{itemize}
 
 \begin{figure}[!ht]
@@ -25,6 +22,148 @@ Our wireless stethoscope consists of seven subsystems in order to transfer the a
 \end{figure}
 
 The sensor consists of a conventional stethoscope head coupled to a microphone, which transforms the sound signal into a voltage signal. This signal is too small to drive any circuitry directly, so it is passed through a signal amplification stage, which results in a bipolar signal. After amplification the signal is passed through input circuitry which introduces a 1.65V offset and limits the voltage to within the maximum tolerable values of the micro-controller in the next stage. This offset is required to transform the signal from bipolar to unipolar, as the micro-controller can not read negative voltages. The micro-controller then performs signal processing in the form of a digital filter, so that it will have the same sound characteristics as a conventional stethoscope. Once processed the signal is transmitted to a Blue-tooth module which transmits the data to a Blue-tooth speaker. In addition an audio jack is available to plug in a speaker directly. All these subsystems are powered by a 9V power source, which can be switched between battery and an AC-DC wall adapter.
+
+\section{System Power} \label{sys_power}
+The module is designed to operate in 9V input voltage.  There are two different ways to achieve the required voltage. One option is using a 9V rechargeable battery and the other one is using the 9V DC-wall plug-in adapter.  The two power options provide different benefits when the module is used in different situations. There are some advantages of using a battery. Firstly, using a battery offers true wireless function for users. Secondly, it provides electronic isolation from the main power supply.  In the battery operation, the module is easier to transport and convenient to operate in the outside environment.  A 9V Ni-MH rechargeable battery or any other 9V batteries are suitable for application. A rechargeable battery is ideal because it has less loss when it is not in use. However, the rechargeable batteries could not provide more energy to operate the module for a longer time. From the datasheet of Energizer 9V Rechargeable battery, the battery can operate about 1.2 hours when it discharges at 87.5mA (Fig~.\ref{fig:battery}). The module runs about 80mA.  Thus, the module can last about one hour when a rechargeable battery is used.
+
+\begin{figure}[!tbh]
+	\centering
+	\fbox{
+		\includegraphics[width=90mm]{battery.jpg}
+	}
+	\caption{Energizer battery voltage vs. hours of operation\cite{energizer_datasheet}}
+	\label{fig:battery}
+\end{figure}
+
+Since the energy in a battery is limited, using a wall adapter is ideal when the operating time lasts very long. And it is inconvenient. Wall adapter power supply is the best option when the module needs to be used for a long time indoors.
+
+\section{Voltage Regulation}
+In the module, there are two main voltages required (3.3 V and $\pm10$V) .The 3.3V voltage uses to supply the micro-controller and the Blue tooth transmit module while the $\pm10$V voltage used to supply input and output stages’ electronic components.
+
+\subsection{Low Voltage Regulation (3.3V)}
+As the input voltage is 9V, buck converter is required to step 9V into 3.3V. LM317L-N 3-Terminal Adjustable Regulator from Texas Instruments provides essential features for the power design (Fig.~\ref{fig:LM317}).  The LM317 can output wide range voltage from 1.2V to 37V and provides large output current up to 100mA. There are another three important functions which are thermal overload protection, current limiting and safe operating area protection. Furthermore, the desired output voltage can be set in a very simple way which requires two external resistors only.  Moreover, LM317 is available in SOIC-8 package and the body size is small enough to satisfy the design requirement. 
+
+\begin{figure}[!tbh]
+	\centering
+	\fbox{
+		\includegraphics[width=90mm]{LM317.png}
+	}
+	\caption{LM317 Voltage regulator, schematic taken from datasheet\cite{LM317_datasheet}}
+	\label{fig:LM317}
+\end{figure}
+
+Circuit with protection diodes is implemented in the module.  According to data sheet, the relationship between output voltage and resistors is showed as follows
+
+\begin{equation}
+V_{\textrm{out}} = V_{\textrm{REF}}\left(1+\frac{R4}{R3}\right), \textrm{where } V_\textrm{REF} = 1.25V
+\label{eq:LM317}
+\end{equation}
+
+Thus, Resistor R3 is chose to 1000 $\Omega$ and Resistor R4 is chose to 1600 $\Omega$ and the output is 3.25 V which is close enough to 3.3V to supply power for micro-controller and Blue tooth module.
+
+In order to preventing the external capacitors from discharging current into the regulator, protection diodes are added to the circuit. The input capacitor C1 and output capacitor C3 are used to reduce the noise in the circuit.  Typical capacitors value can be from 0.1 to 10$\mu$F. 
+
+\subsection{$\pm10$V Regulation}
+The module performed well when amplifiers operated in positive and negative 10V when we tested the design. Positive and Negative Voltages are required to generate in the design.
+
+\subsubsection{Choice of Regulator}
+The desired voltage ($\pm10$V) can be obtained by a single regulator that can output positive and negative voltage at the same time or two different regulators which generate those voltage separately.  Some inductor-less (Charge Pump) converter can generate positive and negative voltage simultaneously and it only requires capacitors to achieve conversion.  Some switching regulator can generate either positive or negative voltage and it needs to use more components to achieve conversion. One of the inductor-less converters - LT1026 voltage doubler and inverter is considered in the choice (Fig.~). The schematic of LT1026 shows three capacitors could output positive and negative voltage. It operates in a simply way. However, its maximum output current is 15mA. And in our application, it runs about 80mA. After reaching inductor-less converters that we can use, the maximum output current is 100mA. It not very suitable for our application. In contrast, the switching regulator can output very large current which is 200mA or even more. Thus, one boost converter and one voltage inverter are chosen to generate desired voltage. The converters generates large output current and have small output ripple that make the module can operate stably.
+
+\begin{figure}[!tbh]
+	\centering
+	\fbox{
+		\includegraphics[width=65mm]{lt1026.png}
+	}
+	\caption{LT1026 Voltage doubler and inverter, schematic taken from data sheet\cite{LT1026_datasheet}}
+	\label{fig:LT1026}
+\end{figure}
+
+\subsubsection{Positive Voltage Regulation}
+Set up DC-DC Converter LT3461 from Linear Technology is used for generate positive 10Voutput voltage.
+
+Then LT3461 setup DC-DC converter is built with an Integrated Schottky and features with small PCB footprint and lower parts cost. The converter operates in fixed frequency -1.3HMz and outputs high voltage up to 36V with wide range input voltage from 2.5V to 16V. Besides, output current is up to 200mA. The predictable output noise due to the constant operating frequency could be easy remove and the switching noise is isolated from input using inductor base topology.
+
+From the typical application circuit (Fig.~\ref{fig:LT3461}) the desired output voltage is set through the feedback pin (Pin 3) with resistors R2 and R3 as follows
+
+\begin{equation}
+V_{\textrm{out}} = V_{\textrm{REF}}\left(1+\frac{R2}{R3}\right), \textrm{where } V_\textrm{REF} = 1.255V
+\label{eq:LT3461}
+\end{equation}
+
+In the application, R2=300k$\Omega$ and R3=43k$\Omega$. Thus, $V_\textrm{out}=1.255\left(1+\frac{300}{43}\right) \approx 10.01V$ and the current goes across R2 and R3 is very small by using larger value R2 and R3. Moreover, 1.5V or higher voltage requires turning on the converter through SHDN Pin (Pin 4). 0.4V or less voltage is used to shut down the converter. RC filter (47k$\Omega$, 47nF) recommended by the data sheet is used and provides soft-start function. Furthermore, output capacitor is charged by inrush current which goes through inductor and Schottky diode. The maximum value of inrush current should be less than 1.5A. The calculation formula is 
+\begin{equation}
+I_p = \frac{V_i-0.6}{\sqrt{\frac{L}{C}-1}} \exp{ \left( \frac{-\pi}{2\sqrt{\frac{L}{C}-1}} \right)}
+\label{eq:inrush_current}
+\end{equation}
+Where $L$ is the inductance and $C$ is the output capacitance.
+In our design, $V_i=9V, L=8.2\mu H, C=6.8\mu F, \textrm{and} I_p=0.5808A$. The peak value of inrush current is in the acceptable range. Besides, the capacitor C3 which is between the output and the feedback pin is phase lead capacitor can decrease the output perturbation and improve transient response. The value is chose to 22pF recommended by the data sheet.
+
+\begin{figure}[!tbh]
+	\centering
+	\fbox{
+		\includegraphics[width=120mm]{lt3461.png}
+	}
+	\caption{LT3461 typical aplication circuit\cite{LT3461_datasheet}}
+	\label{fig:LT3461}
+\end{figure}
+
+\subsubsection{Simulation Result}
+The operation of converter is simulated by the LTspice (Fig.~\ref{fig:LT3461_ltspice}). Form the simulation, it clearly shows that it takes about 30μs to boost to 10V from 9V input (Fig.~\ref{fig:LT3461_sim}). The output voltage is very flat and stable. It provides stable power supply for amplifiers. 
+\begin{figure}[!tbh]
+	\centering
+	\fbox{
+		\includegraphics[width=120mm]{lt3461_ltspice.png}
+	}
+	\caption{LT3461 simulation circuit}
+	\label{fig:LT3461_ltspice}
+\end{figure}
+\begin{figure}[!tbh]
+	\centering
+	\fbox{
+		\includegraphics[width=140mm]{lt3461_sim.png}
+	}
+	\caption{LT3461 simulation results}
+	\label{fig:LT3461_sim}
+\end{figure}
+
+
+\subsubsection{Negative Voltage Regulation}
+The LT3462, inverting DC-DC Converter, is using the same technology- integrated Schottky Rectifier as the LT3461. The converter operates in 1.2MHz fixed frequency and removes the low frequency noise from the output.  A wide rang input 2.5 V to 16V is suitable for the converter operation and the converter produces high output voltage up to -38V and high output current up to 250mA. Moreover, output voltage can associate with very low output voltage ripple that is approximately 1mV peak to peak. The converter also provides a small footprint and low parts same as The LT3461.
+\begin{figure}[!tbh]
+	\centering
+	\fbox{
+		\includegraphics[width=100mm]{lt3462.png}
+	}
+	\caption{LT3462 typical application circuit taken from datasheet\cite{LT3462_datasheet}}
+	\label{fig:LT3462}
+\end{figure}
+The application circuit of LT3642 showed above is very similar to the typical circuit of LT3641. The required Voltage can be set by Resistors R1 and R2. The relationship is shown as follows
+\begin{equation}
+R_1 = R_2 \left( \frac{V_{out}}{V_{REF}} \right)
+\label{eq:LM3462}
+\end{equation}
+where $V_\textrm{REF}=1.265V$. In our design, in order minimum the current, large value of resistors are used. R1 is 330k$\Omega$ and R2 is 43k$\Omega$ giving $V_{out} \approx -10V$. The bypass capacitor C2=4.7$\mu$F is used with the input supply pin $V_in$ (PIN6). Furthermore, inrush current which passes through the inductors and the Schottky diode is generated to charge the capacitor to $V_in$ and the peak of inrush current has to be less than 1.5A. The relationship between the peak inrush current, supply voltage, inductors and capacitors is given by the same equation as that for the LT3461 (Eq.~\ref{eq:inrush_current}). Capacitor C1 is known as a ``Flying capacitor'' and requires 1$\mu$F or more. In order to meet those design requirement, the inductors and capacitors are chose to the same as the LT 3461, $L=8.2\mu H, C=6.8\mu F$ And the peak of inrush current is 0.5808A. At last, ceramic type capacitor C4 with value of 10$\mu$F is used to reduce the noise of output voltage.
+\subsubsection{Simulation Result}
+The converter also can be simulated in LTspice (Fig.~\ref{fig:LT3462_ltspice}). From the simulation, the converter takes about 2ms to reach the desired voltage of -10V (Fig.~\ref{fig:LT3462_sim}). The ripple of the output voltage is very small. It also provide stable system for the amplifiers operation.
+\begin{figure}[!tbh]
+	\centering
+	\fbox{
+		\includegraphics[width=100mm]{lt3462_ltspice.png}
+	}
+	\caption{LT3462 simulation}
+	\label{fig:LT3462_ltspice}
+\end{figure}
+\begin{figure}[!tbh]
+	\centering
+	\fbox{
+		\includegraphics[width=120mm]{lt3462_sim.png}
+	}
+	\caption{LT3462 simulation results}
+	\label{fig:LT3462_sim}
+\end{figure}
+
+
+
 
 \section{Signal Sensor}
 Our signal sensor consists of a conventional stethoscope head coupled to an electronic sensor. We considered using three different types of electronic sensors to detect the stethoscope sounds, a capacitive, laser and microphone sensor. Capacitive sensors are based on flat-plate capacitors, and can detect a voltage signal between two conducting plates when the distance between them changes\cite[p.104]{Regtien2012} (Fig.~\ref{fig:cap_sensor}). By covering the stethoscope diaphragm in a conductive material it can act as one plate of the capacitive sensor, while a second, smaller plate would have to somehow be mounted inside the stethoscope head. When sound is incident on the diaphragm it causes small vibrations that can then be picked up by the sensor and transmitted as a signal.
@@ -204,11 +343,80 @@ It is important to assure that the rate at which buffer's A and B are written to
 
 
 
-\section{Wireless Transmission}
-Yudong
+\subsection{Micro-controller Audio output}
+The microchip provides a 16-bit Delta-Sigma signal Digital-to-Analog converter for audio application.  The Left and Right channels are used in the audio operation. In our application, only one channel is used. The DAC output has two analog voltages, a Positive DAC output and a Negative DAC output, for each output channel.  An external circuit is required to provide a single end output.  A simple op amp differential amplifier circuit is designed to achieve the purpose. 
+
+\begin{figure}[!htb]
+	\centering
+	\fbox{
+		\includegraphics[width=90mm]{DAC_OUT.png}
+	}
+	\caption{Operational amplifier used for micro-controller single ended output, circuit taken from DAC data sheet\cite{DAC_datasheet}}
+	\label{fig:dac_output}
+\end{figure}
+
+An op amp differential amplifier built with negative feedback provides predictable and stable gain for output (Fig.~\ref{fig:dac_output}). RP is Positive DAC output and RN is Negative DAC output.  All the resistors are the same and the gain is 1 for the output.  The general purpose operational amplifier LM741 from TEXAS INSTRUMENT is used in the application. A decoupling capacitor C32 820pF is used to bypass the power supply to reduce the noise caused by the other circuit elements. 
+
 
 \section{Wired Transmission}
-Yudong
+The output voltage from microcontroller is maximum 1V peak to peak with 1.5V DC offset. The signal is too weak and hard to be listened through the speaker. Another amplification stage is required to amplifier audio signal.
+The low voltage audio power amplifier LM386 is adopted in this amplification stage. The LM386 is ideal for battery operation with wide voltage range from 4V to 12V. It is easy to operate. Low distortion is approximately 0.2\% and the quiescent current drain is roughly 4mA. Application circuit minimums external parts to adjust the gain from 20 to 200.  It is available in 8 pin MSOP package. Its size is small enough to suit PCB board. And it is ideal for low voltage sound system application.
+\begin{figure}[!htb]
+	\centering
+	\fbox{
+		\includegraphics[width=110mm]{LM386.png}
+	}
+	\caption{LM386 typical application circuit taken from data sheet\cite{LM386_datasheet}}
+	\label{fig:LM386}
+\end{figure}
+The power supply pin (Pin 6) of LM386 directly connects to the power supply (9V) bypass decoupling capacitor to operate. The audio signal goes into the input pin (Pin 3) through a variable resistor which is up to 10k$\Omega$ and a capacitor. The volume of output signal can be change by changing the value of the variable resistor.  Besides, the LM386 provides flexible gain control functions using two simple pins Pin 1 and Pin 8. Leaving pin1 and pin 8 open, the gain at 20 is provided. When a capacitor is placed between those two pins, the gain goes to 200.  Moreover, in the application, a variable resistor and a capacitor are placed in series and the gain can be varied from 20 to 200. 
 
-\section{System Power} \label{sys_power}
-Yudong
+\section{Wireless Transmission}
+Wireless transmission is implemented using Blue tooth technology. The Blue tooth Module we used is an integrated circuit based on the CSR8605 chip. CSR8605 is baseband IC for Blue tooth.  It features with 2.4 GHz systems and Blue tooth low energy. It also supports Blue tooth v4.0 specification, AVRCP v1.0 and A2DP v1.2 Blue tooth profiles. Wide range physical interfaces are provided.  Those are UART interface for debug, USB 2.0 interface, SPI interface, PCM and I$^2$C interface (Fig.~). The integrated audio codec is included in the chip to meet a variety of audio standard. The Kalimab DSP coprocessor supports most of the audio and DSP application. 
+
+\begin{figure}[!htb]
+	\centering
+	\fbox{
+		\includegraphics[width=100mm]{bluetooth_block.jpg}
+	}
+	\caption{Blue tooth module interfaces taken from data sheet\cite{Bluetooth_datasheet}}
+	\label{fig:bluetooth_block}
+\end{figure}
+
+\subsection{Integrated Blue tooth Module}
+
+\begin{figure}[!htb]
+	\centering
+	\fbox{
+		\includegraphics[width=80mm]{bluetooth_module_photo.jpg}
+	}
+	\caption{Photograph of Blue tooth module}
+	\label{fig:bluetooth_photo}
+\end{figure}
+
+The Integrated Blue tooth Module operates by DC supply voltage from 3 to 4.2 V and output current is approximately 13mA Max.  The transmission distance is up to 10 meters. Two analogy inputs, Left and Right Channels, are provided. The Blue tooth Module will pair with Blue devices which have default paired pin words such as “000”,”1234”,”1111” and “8888”. Besides, it will send request to pair the most recent paired blue device once it turns on.  During the paring model, the red and blue LED will flash quickly. And only the blue LED will flash slowly after paring model. The Blue tooth Module will automatically turn off if it does not pair any blue devices in 10 minutes. The Blue tooth Module is easier to implement, with seven headersare provided (Fig.~\ref{fig:bluetooth_photo}). The module is simply operated by connecting the corresponding pins (Fig.~\ref{fig:bluetooth_connection}). Analog inputs connect directly into Left and Right channel pin since only one channel is used in our application. Two resistors are connected to LED pins and it reduces the current in the module. And the supply voltage is from the 3.3V regulator.
+
+\begin{figure}[!htb]
+	\centering
+	\fbox{
+		\includegraphics[width=80mm]{bluetooth_schematic.png}
+	}
+	\caption{Schematic for interfacing with Blue tooth module}
+	\label{fig:bluetooth_connection}
+\end{figure}
+
+
+\section{PCB Management}
+All the electronic elements are soldered onto a Printed Circuit Board (PCB). The size of the application PCB is about 15 cm length and 5 cm wide (Fig.~\ref), and can be covered by a plastic cylinder that it is easier for users to hold it in their hands. There are four holds on the each corners that use to make the PCB stable when it is covered by a plastic cylinder.
+
+The microphone is located on the left centre of the PCB. This makes it easier to attach stethoscope diagram with the microphone. Each input stage is then placed from left to right. The DSP controller is vertically placed in the middle of the PCB and the output stages locate on the right side of the controller. Each stage is connected through two pin headers, which are all placed horizontally bottom of PCB. This way we can disconnect any stages if it fails or add other stages in the future.
+
+On right side of the controller, there are three LEDs – RED, GREEN, BLUE which indicate the power, DSP working and the Blue tooth Module operation. Two switches are placed next to the LED on the right corner. One is power switch and another is Blue tooth switch. Then the Blue tooth module is placed blew the switches and in the middle of the PCB while the audio jack is placed under the Blue tooth module. Finally the power plug is located on the right end of the PCB and the battery holder on the under side of PCB behind the Blue tooth module.
+\begin{figure}[!htb]
+	\centering
+	\fbox{
+		\includegraphics[width=145mm]{pcb_top.jpg}
+	}
+	\caption{PCB used to hold electronic components}
+	\label{fig:pcb}
+\end{figure}

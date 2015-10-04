@@ -1,16 +1,25 @@
 \chapter{Discussion} \label{discussion}
 
-- We can hear heart beats but have no meas for how good it is \\
 
-\section{Mitigating the Unstable Feedback}
+\section{Project Limitations}
 
-- Looks like it is not result from electrical circuit, as no distinct resonances were  found. The fact that feedback freq depends on what we use to couple the mic to stethoscope suggests an acoustic resonance is the cause. Further work could be undertaken to place sound absorbing materials around the microphone, such as silicon or a porous fibre, in order to minimise the amount of feedback sound entering the microphone from directions other than the stethoscope diaphragm. 
+Audio feedback is the major factor that limits the usability of our device. Without any notch filter in place the unstable feedback makes the device unusable. With a passive twin-T notch filter we were able to minimise the effect of this unstable feedback so that it only occurred when the stethoscope head was placed within 10cm of the speaker. This could possibly be enough to eliminate the feedback as the speaker could be placed outside of a 10cm radius from the patient while a doctor performs auscultations. The notch filter itself is a crude first attempt to address the instability, and only showed that a notch filter of some sort can potentially make the stethoscope useful. The design isn't feasible to use in a final product because of its large bandwidth of 800Hz (Fig.~\ref{fig:notch_sim}), which attenuates a large portion of frequencies within the range of auscultation signals. Additionally it is not tunable, once capacitor and resistor values are chosen for the notch filter the hardware determines the notched frequency. Although it's possible to introduce a variable resistor or capacitor to tune this cut out frequency this is not a desired solution as it would require a practitioner to endure an unpleasant feedback screech while trying to tune the device. Furthermore the unstable feedback frequency may change as a result of the environment or slight variations in manufacturing the device. A better solution may be to use the microprocessor to digitally filter the unstable frequencies, which would allow for tunability and the possibility of dynamically retuning the notch filter.
 
-- feedback issue, what's the best way to resolve it? \\
-	- maybe capacitive and laser sensor would not have this feedback issue
+It appears that the unstable feedback is not a result from the electrical circuit, as no distinct resonances were found in the sensor amplification or circuit input stages (Fig.~\ref{fig:result_circuit_freq_response}). This and the fact that the feedback frequencies changed when we used a different coupling device to connect the stethoscope to the microphone suggest that an acoustic resonance is the root of the instability. Thus we need to test our  device in the working environment within the Royal Melbourne Hospital where it will be used, to account for the possibility that this room may have its own resonances associated with it. Furthermore it may be subject to different sources of noise not encountered in the lab we developed our device, such as medical equipment or room ventilation fans, that could cause other instabilities.
+
+Currently we can hear our own heart beat with the stethoscope placed on our chest, however we have no method for determining the quality of sound the stethoscope produces. We don't know if the sound quality is good enough and so need to devise an experimental procedure that would give a measure of how acceptable the sound quality is. This would need to be done in collaboration with doctors to get feedback on what sound qualities they are listening for and whether the device meets them.
+	
+
+\section{Future Development}
+
+To address the issue of feed back instability further work could be undertaken to place sound absorbing materials around the microphone, such as silicon or a porous fibre, in order to minimise the amount of feedback sound entering the microphone from directions other than the stethoscope diaphragm. The issue with using a microphone sensor lay in the fact that it picks up all sources of sound nearby, not just the auscultation sounds coming from the stethoscope diaphragm. It is possible that this could be entirely eliminated by using one of the other sensors proposed, such as a capacitive or laser sensor. By using either of these sensors the measured signal comes directly from the stethoscope diaphragm. If the system speaker does not appreciably affect this diaphragm then it is possible that no feedback treatment will be needed at all. It's reasonable to think that a nearby speaker wouldn't perturb the diaphragm significantly because of it's relatively large surface area and mass, however only further experimentation can determine if this is the case. To continue investigation with one of these sensors may also require 
+
 	- could use digital filter to create notch filter
 	- could use difference amplifier at input, with one microphone outside and another inside the stethoscope. That way it only subtracts the feedback freq leaving the signal.
 	- Alternatively a phase lock loop could be used
 
-- Using digitial transmission to B.T device to minimise quantisation noise \\
-- Try to identify 
+- Using digitial transmission to B.T device to minimise quantisation noise 
+
+- Try to identify transfer function to get stethoscope tube acoustic properties.
+
+- Minimise sampling frequency to 8kHz as we found only needed to pick up 4Khz sounds with stethoscope. This would allow for more computation to be done on the data as it is sampled, allowing for more complicated filters that might be needed to reproduce a frequency spectrum like that of the tube.
